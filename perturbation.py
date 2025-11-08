@@ -1,4 +1,5 @@
 import numpy as np
+import re
 import json, pdb
 from llms import LLM
 from copy import deepcopy
@@ -43,12 +44,13 @@ class Paraphrasing(Perturbation):
     The prompt is perturbed by being paraphrased using ChatGPT (3.5).
     """
 
-    def __init__(self, n: int) -> None:
+    def __init__(self, n: int, llm=None) -> None:
         self.n = n
-        self.llm = LLM()
+        self.llm = llm
         cmd = 'Suggest %i ways to paraphrase the text in triple quotes above.'%n
         cmd += '\nIf the original text is a question, please make sure that the your answers are also questions.'
-        cmd += '\nProvide your response in JSON format: {"paraphrased":list_of_str}'
+        cmd += '\nRespond ONLY in strict JSON format as follows (no explanations, no markdown, no code): '
+        cmd += '{"paraphrased": ["...", "...", "...", "...", "..."]'
         self.cmd = cmd
         
 
@@ -57,17 +59,14 @@ class Paraphrasing(Perturbation):
 
         out = self.llm.generate([
             {'role': 'user', 'content': '"""\n' + orig + '\n"""\n' + self.cmd}
-        ], temperature=0.7)
+        ], temperature=0.7, max_new_tokens=100)
         if out is None:
             return None
-        t0 = out.find('{')
-        if t0 < 0:
-            return None
-        t1 = out.find('}')
-        if t1 < t0:
+        matches = re.findall(r'\{.*?\}', out, re.DOTALL)
+        if not matches:
             return None
         try:
-            paraphrased = json.loads(out[t0: t1 + 1])['paraphrased']
+            paraphrased = json.loads(matches[-1])['paraphrased']
         except:
             return None
         xx = []

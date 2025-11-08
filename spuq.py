@@ -8,7 +8,7 @@ class SPUQ:
         assert(n_perturb > 0)
 
         if perturbation == 'paraphrasing':
-            self.perturbation = Paraphrasing(n_perturb)
+            self.perturbation = Paraphrasing(n_perturb, llm=self.llm)
         elif perturbation == 'system_message':
             self.perturbation = RandSysMsg(n_perturb)
         elif perturbation == 'dummy_token':
@@ -31,8 +31,8 @@ class SPUQ:
         inp_out = []
         outs = []
         for x, temperature in perturbed:
-            out = self.llm.generate(x, temperature=temperature)
-            outs.append(out)
+            out = self.llm.generate(x, temperature=temperature, max_new_tokens=20)
+            outs.append(self.clean_response(x[0]['content'], out))
             inp_out.append((x, out))
         conf = self.aggregation.aggregate(inp_out)
         return {
@@ -41,3 +41,8 @@ class SPUQ:
             'confidence': conf,
         }
     
+    def clean_response(self, inp, out):
+        idx = out.find(inp)
+        if idx != -1:
+            response = out[idx + len(inp):]
+        return response.strip()
