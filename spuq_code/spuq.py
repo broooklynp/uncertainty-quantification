@@ -32,7 +32,7 @@ class SPUQ:
         outs = []
         for x, temperature in perturbed:
             out = self.llm.generate(x, temperature=temperature, max_new_tokens=20)
-            outs.append(self.clean_response(x[0]['content'], out))
+            outs.append(out)
             inp_out.append((x, out))
         conf = self.aggregation.aggregate(inp_out)
         return {
@@ -40,9 +40,3 @@ class SPUQ:
             'outputs': outs,
             'confidence': conf,
         }
-    
-    def clean_response(self, inp, out):
-        idx = out.find(inp)
-        if idx != -1:
-            response = out[idx + len(inp):]
-        return response.strip()

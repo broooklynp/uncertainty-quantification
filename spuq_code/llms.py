@@ -27,6 +27,7 @@ class LLM:
         prompt = "\n".join([m["content"] for m in messages])
 
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        input_len = inputs.input_ids.shape[1]
 
         with torch.no_grad():
             outputs = self.model.generate(
@@ -36,5 +37,7 @@ class LLM:
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id
             )
+        
+        generated_tokens = outputs[0][input_len:]
 
-        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()

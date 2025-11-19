@@ -50,7 +50,7 @@ class Paraphrasing(Perturbation):
         cmd = 'Suggest %i ways to paraphrase the text in triple quotes above.'%n
         cmd += '\nIf the original text is a question, please make sure that the your answers are also questions.'
         cmd += '\nRespond ONLY in strict JSON format as follows (no explanations, no markdown, no code): '
-        cmd += '{"paraphrased": ["...", "...", "...", "...", "..."]'
+        cmd += '{"paraphrased": ["...", "...", "..."]'
         self.cmd = cmd
         
 
